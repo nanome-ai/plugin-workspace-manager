@@ -1,0 +1,7 @@
+__pycache__
+.vscode/
+build/
+dist/
+nanome_workspace_manager.egg-info/
+nanome/
+nanome_workspace_manager/Workspaces/
