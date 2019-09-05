@@ -16,11 +16,12 @@ import re
 
 # This plugin uses undocumented network code, in order to reuse already available serialization code
 
-DIR = os.path.dirname(__file__)
-AUTH_PATH = os.path.join(DIR, 'accounts.txt')
-MENU_PATH = os.path.join(DIR, 'menu.json')
+MENU_PATH = os.path.join(os.path.dirname(__file__), 'menu.json')
 
-WORKSPACE_DIR = os.path.join(DIR, 'Workspaces')
+DIR = os.path.expanduser('~/Documents/nanome-workspace-manager')
+AUTH_PATH = os.path.join(DIR, 'accounts.txt')
+
+WORKSPACE_DIR = os.path.join(DIR, 'workspaces')
 if not os.path.exists(WORKSPACE_DIR):
     os.makedirs(WORKSPACE_DIR)
 
@@ -202,8 +203,12 @@ class WorkspaceManager(nanome.PluginInstance):
             self.__timer = timer()
     
     def load_accounts(self):
-        with open(AUTH_PATH, 'r') as f:
-            self.accounts = [line.rstrip().split(' ') for line in f.readlines()]
+        try:
+            with open(AUTH_PATH, 'r') as f:
+                self.accounts = [line.rstrip().split(' ') for line in f.readlines()]
+        except:
+            # create default accounts file if none exists
+            self.accounts = [['admin', 'admin', '1']]
         
         changed = False
         for account in self.accounts:
