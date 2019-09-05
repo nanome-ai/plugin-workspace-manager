@@ -24,6 +24,8 @@ WORKSPACE_DIR = os.path.join(DIR, 'Workspaces')
 if not os.path.exists(WORKSPACE_DIR):
     os.makedirs(WORKSPACE_DIR)
 
+md5re = re.compile("^[a-f0-9]{32}$")
+
 workspace_serializer = _WorkspaceSerializer()
 dictionary_serializer = _DictionarySerializer()
 dictionary_serializer.set_types(_StringSerializer(), _ByteSerializer())
@@ -202,6 +204,16 @@ class WorkspaceManager(nanome.PluginInstance):
     def load_accounts(self):
         with open(AUTH_PATH, 'r') as f:
             self.accounts = [line.rstrip().split(' ') for line in f.readlines()]
+        
+        changed = False
+        for account in self.accounts:
+            if not md5re.match(account[1]):
+                # password isn't hashed, hash it
+                account[1] = md5(account[1].encode()).hexdigest()
+                changed = True
+
+        if changed:
+            self.save_accounts()
     
     def save_accounts(self):
         with open(AUTH_PATH, 'w') as f:
