@@ -141,7 +141,7 @@ class WorkspaceManager(nanome.PluginInstance):
     def refresh_menu(self):
         if self.user == None:
             return
-        
+
         files = self.get_workspaces()
         file_names = set(map(lambda item: item.name, self.ls_workspaces.items))
         add_set = set(files)
@@ -199,17 +199,24 @@ class WorkspaceManager(nanome.PluginInstance):
 
     def update(self):
         if timer() - self.__timer >= 5.0:
+            self.load_accounts()
             self.refresh_menu()
             self.__timer = timer()
-    
+
     def load_accounts(self):
         try:
             with open(AUTH_PATH, 'r') as f:
-                self.accounts = [line.rstrip().split(' ') for line in f.readlines()]
+                self.accounts = []
+                for line in f.readlines():
+                    account = line.rstrip().split(' ')
+                    if len(account) != 3:
+                        Logs.warning('Invalid account entry: \n' + line)
+                        continue
+                    self.accounts.append(account)
         except:
             # create default accounts file if none exists
             self.accounts = [['admin', 'admin', '1']]
-        
+
         changed = False
         for account in self.accounts:
             if not md5re.match(account[1]):
@@ -219,11 +226,11 @@ class WorkspaceManager(nanome.PluginInstance):
 
         if changed:
             self.save_accounts()
-    
+
     def save_accounts(self):
         with open(AUTH_PATH, 'w') as f:
             f.writelines('%s\n' % ' '.join(account) for account in self.accounts)
-    
+
     def clean_filename(self, filename):
         # only allow filename to contain alphanum, "-", "_", and " "
         return re.sub('[^a-zA-Z0-9-_ ]', '', filename)
@@ -237,7 +244,7 @@ class WorkspaceManager(nanome.PluginInstance):
     ###################################
     ### Button Callbacks
     ###################################
-    
+
     def auth_callback(self, button):
         username = self.in_user.input_text
         password = md5(self.in_pass.input_text.encode()).hexdigest()
