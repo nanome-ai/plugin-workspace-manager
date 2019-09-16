@@ -7,6 +7,7 @@ from nanome._internal._structure._serialization import _WorkspaceSerializer, _At
 from nanome._internal._util._serializers import _DictionarySerializer, _StringSerializer, _ByteSerializer, _TypeSerializer, _LongSerializer
 
 import struct
+import sys
 import os
 import zlib
 import traceback
@@ -124,6 +125,9 @@ class WorkspaceManager(nanome.PluginInstance):
         self.pg_main = menu.root.find_node('MainPage')
         self.pfb_item = menu.root.find_node('ItemPrefab')
 
+        self.pg_auth.enabled = self.__class__.enable_accounts
+        self.pg_main.enabled = not self.__class__.enable_accounts
+
         # auth elements
         self.in_user = self.pg_auth.find_node('Username').get_content()
         self.in_pass = self.pg_auth.find_node('Password').get_content()
@@ -139,7 +143,7 @@ class WorkspaceManager(nanome.PluginInstance):
         self.update_menu(menu)
 
     def refresh_menu(self):
-        if self.user == None:
+        if self.__class__.enable_accounts and self.user == None:
             return
 
         files = self.get_workspaces()
@@ -165,8 +169,12 @@ class WorkspaceManager(nanome.PluginInstance):
             label = new_item.find_node("Label").get_content()
             load = new_item.get_content()
             delete = new_item.find_node("Delete").get_content()
-            label.text_value = file_name if self.admin else file_name.split(' - ', 1)[1]
             changed = True
+
+            if self.__class__.enable_accounts and not self.admin:
+                label.text_value = file_name.split(' - ', 1)[1]
+            else:
+                label.text_value = file_name
 
             load.workspace = file_name
             delete.workspace = file_name
@@ -189,7 +197,7 @@ class WorkspaceManager(nanome.PluginInstance):
     def start(self):
         self.user = None
         self.admin = False
-
+        
         self.load_accounts()
         self.create_menu()
         self.__timer = timer()
@@ -204,6 +212,9 @@ class WorkspaceManager(nanome.PluginInstance):
             self.__timer = timer()
 
     def load_accounts(self):
+        if not self.__class__.enable_accounts:
+            return
+
         try:
             with open(AUTH_PATH, 'r') as f:
                 self.accounts = []
@@ -237,7 +248,7 @@ class WorkspaceManager(nanome.PluginInstance):
 
     def get_workspaces(self):
         files = [filename for filename in os.listdir(WORKSPACE_DIR)]
-        if not self.admin:
+        if self.__class__.enable_accounts and not self.admin:
             files = list(filter(lambda f: f.split(' - ')[0] == self.user, files))
         return files
 
@@ -269,7 +280,10 @@ class WorkspaceManager(nanome.PluginInstance):
         if name == '':
             self.send_notification(NotificationTypes.error, "Workspace name cannot be empty")
             return
-        name = self.user + ' - ' + name
+
+        if self.__class__.enable_accounts:
+            name = self.user + ' - ' + name
+
         self.btn_save.unusable = True
         self.update_content(self.btn_save)
         self.open_file_for_save(name)
@@ -285,10 +299,25 @@ class WorkspaceManager(nanome.PluginInstance):
         self.refresh_menu()
         self.__timer = timer()
 
+class WorkspaceManagerAccounts(WorkspaceManager):
+    enable_accounts = True
+class WorkspaceManagerNoAccounts(WorkspaceManager):
+    enable_accounts = False
+
 def main():
+    enable_accounts = True
+    try:
+        for i in range(len(sys.argv)):
+            if sys.argv[i] in ["-d", "--disable-accounts"]:
+                enable_accounts = False
+    except:
+        pass
+
+    plugin_class = WorkspaceManagerAccounts if enable_accounts else WorkspaceManagerNoAccounts
+
     # Plugin
     plugin = nanome.Plugin("Workspace Manager", "Allows standalone VR headset to save and load workspaces", "Loading", False)
-    plugin.set_plugin_class(WorkspaceManager)
+    plugin.set_plugin_class(plugin_class)
     plugin.run('127.0.0.1', 8888)
 
 if __name__ == "__main__":

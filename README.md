@@ -38,10 +38,12 @@ Each line contains `<username> <password> <is_admin>` where the password is hash
 
 To add an account, add a line to the file with the plaintext `username`, `password`, and `is_admin`. The next time the plugin is run, all plaintext passwords will automatically be hashed.
 
-To change the password of an account, simply change the second value on a line to the desired password.A
+To change the password of an account, simply change the second value on a line to the desired password.
 
 | NOTE: make sure to replace the admin account or change its password! |
 | - |
+
+If you do not wish to use accounts, you can start the plugin with the `-d` or `--disable-accounts` flag. Note that when accounts are disabled, everyone connected to the plugin can see or delete everyone else's saved workspaces.
 
 
 ### License
