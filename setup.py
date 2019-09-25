@@ -33,6 +33,7 @@ setup(
 	],
 	package_data={
         "nanome_workspace_manager": [
+			"*.json"
         ]
 	},
 )
