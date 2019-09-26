@@ -6,7 +6,7 @@ README = (pathlib.Path(__file__).parent / "README.md").read_text()
 setup(
 	name = 'nanome-workspace-manager',
 	packages=find_packages(),
-	version = '0.1.0',
+	version = '0.1.1',
 	license='MIT',
 	description = 'Nanome Plugin allowing standalone VR headset users to save and load workspaces in a central location',
 	long_description = README,
