@@ -197,7 +197,7 @@ class WorkspaceManager(nanome.PluginInstance):
     def start(self):
         self.user = None
         self.admin = False
-        
+
         self.load_accounts()
         self.create_menu()
         self.__timer = timer()
@@ -318,7 +318,7 @@ def main():
     # Plugin
     plugin = nanome.Plugin("Workspace Manager", "Allows standalone VR headset to save and load workspaces", "Loading", False)
     plugin.set_plugin_class(plugin_class)
-    plugin.run('127.0.0.1', 8888)
+    plugin.run()
 
 if __name__ == "__main__":
     main()
